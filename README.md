@@ -26,5 +26,4 @@ Task management REST API built with Spring Boot and PostgreSQL.
 
 Emilio Nicolás Contreras Salazar 
 
-<img width="1338" height="598" alt="image" src="https://github.com/user-attachments/assets/1211e2d8-e454-4233-ae54-09cb95a36236" />
 
