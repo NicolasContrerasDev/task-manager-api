@@ -18,6 +18,13 @@ Task management REST API built with Spring Boot and PostgreSQL.
 - Get task by ID
 - List all tasks
 
+## API Documentation
+<img width="1338" height="598" alt="image" src="https://github.com/user-attachments/assets/2e7eb04a-e467-42b0-8d9c-2cb0f7a4fb72" />
+
+
 ## Author
 
 Emilio Nicolás Contreras Salazar 
+
+<img width="1338" height="598" alt="image" src="https://github.com/user-attachments/assets/1211e2d8-e454-4233-ae54-09cb95a36236" />
+
