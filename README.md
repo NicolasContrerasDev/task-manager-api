@@ -110,7 +110,7 @@ http://localhost:8080/swagger-ui.html
 
 ## Author
 
-Emilio Nicolás Contreras
+Emilio Nicolás Contreras Salazar 
 
 Engineering Student focused on Backend Development with Java and Spring Boot.
 
