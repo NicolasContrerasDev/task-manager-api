@@ -80,3 +80,4 @@ When creating or updating a workspace task, `assignedUserId` must be the UUID of
 ## Author
 
 Emilio Nicolás Contreras Salazar 
+https://www.linkedin.com/in/emilio-nicol%C3%A1s-contreras-salazar-0aab0a390/
