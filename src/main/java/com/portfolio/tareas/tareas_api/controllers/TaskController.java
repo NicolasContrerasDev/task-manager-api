@@ -1,58 +1,90 @@
 package com.portfolio.tareas.tareas_api.controllers;
 
-import com.portfolio.tareas.tareas_api.models.Task;
+import com.portfolio.tareas.tareas_api.dto.CreateWorkspaceTaskRequest;
+import com.portfolio.tareas.tareas_api.dto.TaskResponse;
+import com.portfolio.tareas.tareas_api.dto.UpdateWorkspaceTaskRequest;
 import com.portfolio.tareas.tareas_api.services.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks")
 @CrossOrigin(origins = "*")
-@Tag(name = "Tareas", description = "Endpoints para gestionar tus tareas")
+@Tag(name = "Tareas", description = "Endpoints para administrar y consultar tareas")
 public class TaskController {
 
-	private final TaskService taskService;
+    private final TaskService taskService;
 
-	public TaskController(TaskService taskService) {
-		this.taskService = taskService;
-	}
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
+    }
 
-	@GetMapping
-	@Operation(summary = "Listar todas las tareas", description = "Obtiene la lista completa de tareas guardadas en la base de datos.")
-	public List<Task> getAllTasks() {
-		return taskService.getAllTasks();
-	}
+    @GetMapping
+    @Operation(summary = "Listar mis tareas asignadas")
+    public ResponseEntity<List<TaskResponse>> getMyTasks() {
+        return ResponseEntity.ok(taskService.getAssignedTasksForCurrentUser());
+    }
 
-	@GetMapping("/{id}")
-	@Operation(summary = "Buscar tarea por ID", description = "Retorna una única tarea según el ID proporcionado.")
-	public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-		return taskService.getTaskById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-	}
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar tarea por ID")
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(taskService.getTaskForCurrentUser(id));
+    }
 
-	@PostMapping
-	@Operation(summary = "Crear nueva tarea", description = "Crea una tarea nueva. El ID y la fecha de creación se generan automáticamente.")
-	public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
-		return ResponseEntity.ok(taskService.createTask(task));
-	}
+    @GetMapping("/workspace/{workspaceId}")
+    @Operation(summary = "Listar tareas de un area de trabajo")
+    public ResponseEntity<List<TaskResponse>> getWorkspaceTasks(@PathVariable(name = "workspaceId") UUID workspaceId) {
+        return ResponseEntity.ok(taskService.getWorkspaceTasks(workspaceId));
+    }
 
-	@PutMapping("/{id}")
-	@Operation(summary = "Actualizar tarea", description = "Modifica el título, descripción o estado de una tarea existente con los siguientes estados PENDING,\r\n"
-			+ "    IN_PROGRESS,\r\n" + "    COMPLETED.")
-	public ResponseEntity<Task> updateTask(@PathVariable Long id, @Valid @RequestBody Task taskDetails) {
-		return taskService.updateTask(id, taskDetails).map(ResponseEntity::ok)
-				.orElse(ResponseEntity.notFound().build());
-	}
+    @GetMapping("/workspace/{workspaceId}/{taskId}")
+    @Operation(summary = "Ver detalle de una tarea del area de trabajo")
+    public ResponseEntity<TaskResponse> getWorkspaceTask(
+            @PathVariable(name = "workspaceId") UUID workspaceId,
+            @PathVariable(name = "taskId") UUID taskId) {
+        return ResponseEntity.ok(taskService.getWorkspaceTask(workspaceId, taskId));
+    }
 
-	@DeleteMapping("/{id}")
-	@Operation(summary = "Eliminar tarea", description = "Borra permanentemente una tarea de la base de datos usando su ID.")
-	public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-		if (taskService.deleteTask(id)) {
-			return ResponseEntity.noContent().build();
-		}
-		return ResponseEntity.notFound().build();
-	}
+    @PostMapping("/workspace/{workspaceId}")
+    @Operation(summary = "Crear tarea en un area de trabajo")
+    public ResponseEntity<TaskResponse> createWorkspaceTask(
+            @PathVariable(name = "workspaceId") UUID workspaceId,
+            @RequestBody CreateWorkspaceTaskRequest request) {
+        return ResponseEntity.ok(taskService.createWorkspaceTask(workspaceId, request));
+    }
+
+    @PutMapping("/workspace/{workspaceId}/{taskId}")
+    @Operation(summary = "Actualizar tarea en un area de trabajo")
+    public ResponseEntity<TaskResponse> updateWorkspaceTask(
+            @PathVariable(name = "workspaceId") UUID workspaceId,
+            @PathVariable(name = "taskId") UUID taskId,
+            @RequestBody UpdateWorkspaceTaskRequest request) {
+        return ResponseEntity.ok(taskService.updateWorkspaceTask(workspaceId, taskId, request));
+    }
+
+    @DeleteMapping("/workspace/{workspaceId}/{taskId}")
+    @Operation(summary = "Eliminar tarea de un area de trabajo")
+    public ResponseEntity<Void> deleteWorkspaceTask(
+            @PathVariable(name = "workspaceId") UUID workspaceId,
+            @PathVariable(name = "taskId") UUID taskId) {
+        taskService.deleteWorkspaceTask(workspaceId, taskId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/workspace/{workspaceId}/export")
+    @Operation(summary = "Exportar mis tareas asignadas a Excel")
+    public ResponseEntity<byte[]> exportAssignedWorkspaceTasks(@PathVariable(name = "workspaceId") UUID workspaceId) {
+        byte[] excelFile = taskService.exportAssignedWorkspaceTasks(workspaceId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"mis_tareas.xlsx\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelFile);
+    }
 }

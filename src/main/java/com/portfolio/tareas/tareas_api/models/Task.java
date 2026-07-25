@@ -5,73 +5,98 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tasks")
 public class Task {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "ID generado automáticamente")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "ID aleatorio UUID generado automáticamente")
+    private UUID id;
 
-	@NotBlank(message = "El título no puede estar vacío")
-	@Size(max = 100, message = "El título no puede superar los 100 caracteres")
-	@Column(nullable = false, length = 100)
-	private String title;
+    @NotBlank(message = "El título no puede estar vacío")
+    @Size(max = 100, message = "El título no puede superar los 100 caracteres")
+    @Column(nullable = false, length = 100)
+    private String title;
 
-	@Column(columnDefinition = "TEXT")
-	private String description;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private TaskStatus status = TaskStatus.PENDING;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id")
+    private Workspace workspace;
 
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to_user_id")
+    private AppUser assignedTo;
 
-	@PrePersist
-	protected void onCreate() {
-		this.createdAt = LocalDateTime.now();
-	}
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskStatus status = TaskStatus.PENDING;
 
-	public Long getId() {
-		return id;
-	}
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
-	public String getTitle() {
-		return title;
-	}
+    public UUID getId() {
+        return id;
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	public TaskStatus getStatus() {
-		return status;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setStatus(TaskStatus status) {
-		this.status = status;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
+    public Workspace getWorkspace() {
+        return workspace;
+    }
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
+    }
+
+    public AppUser getAssignedTo() {
+        return assignedTo;
+    }
+
+    public void setAssignedTo(AppUser assignedTo) {
+        this.assignedTo = assignedTo;
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }
