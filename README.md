@@ -44,17 +44,10 @@ Passwords must have more than 8 characters and are stored with BCrypt.
 
 The connection is configured through environment variables, with local defaults:
 
-```properties
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tareas_db
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=admin123
-```
+
 
 Every public identifier is a UUID: users, workspaces, memberships and tasks. For example:
 
-```text
-7e787c51-b573-48a4-a79d-c7856cb43e32
-```
 
 If the database was created with the prior version and its `tasks.id` column is numeric, execute [the UUID migration](docs/postgresql-uuid-migration.sql) once before starting this version. Hibernate's `ddl-auto=update` creates the new tables and relations, but it does not safely convert an existing numeric primary key to UUID.
 
