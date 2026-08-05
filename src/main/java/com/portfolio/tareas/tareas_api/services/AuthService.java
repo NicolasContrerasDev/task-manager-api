@@ -1,9 +1,8 @@
 package com.portfolio.tareas.tareas_api.services;
 
-import com.portfolio.tareas.tareas_api.dto.AuthResponse;
+import com.portfolio.tareas.tareas_api.dto.AuthSession;
 import com.portfolio.tareas.tareas_api.dto.LoginRequest;
 import com.portfolio.tareas.tareas_api.dto.RegisterRequest;
-import com.portfolio.tareas.tareas_api.dto.UserResponse;
 import com.portfolio.tareas.tareas_api.models.AppUser;
 import com.portfolio.tareas.tareas_api.repositories.UserRepository;
 import java.util.Locale;
@@ -37,7 +36,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public AuthResponse register(RegisterRequest request) {
+	public AuthSession register(RegisterRequest request) {
 		String username = request.username().trim();
 		String email = request.email().trim().toLowerCase(Locale.ROOT);
 
@@ -51,11 +50,11 @@ public class AuthService {
 
 		AppUser user = new AppUser(username, email, passwordEncoder.encode(request.password()));
 		AppUser savedUser = userRepository.save(user);
-		return buildAuthResponse(savedUser);
+		return buildAuthSession(savedUser);
 	}
 
 	@Transactional(readOnly = true)
-	public AuthResponse login(LoginRequest request) {
+	public AuthSession login(LoginRequest request) {
 		String usernameOrEmail = request.usernameOrEmail().trim();
 
 		try {
@@ -70,11 +69,11 @@ public class AuthService {
 			.findByUsernameIgnoreCaseOrEmailIgnoreCase(usernameOrEmail, usernameOrEmail)
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales invalidas"));
 
-		return buildAuthResponse(user);
+		return buildAuthSession(user);
 	}
 
-	private AuthResponse buildAuthResponse(AppUser user) {
+	private AuthSession buildAuthSession(AppUser user) {
 		String token = jwtService.generateToken(user);
-		return AuthResponse.bearer(token, jwtService.getExpirationMs(), UserResponse.from(user));
+		return new AuthSession(token, jwtService.getExpirationMs());
 	}
 }

@@ -4,6 +4,7 @@ import com.portfolio.tareas.tareas_api.models.TaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record CreateWorkspaceTaskRequest(
@@ -16,6 +17,10 @@ public record CreateWorkspaceTaskRequest(
 	TaskStatus status,
 
 	@NotNull(message = "El usuario asignado es obligatorio")
-	UUID assignedUserId
+	UUID assignedUserId,
+
+	LocalDateTime dueDate,
+
+	String imageData
 ) {
 }

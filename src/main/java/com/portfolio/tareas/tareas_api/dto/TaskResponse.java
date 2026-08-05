@@ -12,6 +12,8 @@ public record TaskResponse(
     UUID workspaceId,
     String workspaceName,
     UserResponse assignedTo,
+    LocalDateTime dueDate,
+    String imageData,
     LocalDateTime createdAt
 ) {
 
@@ -24,6 +26,8 @@ public record TaskResponse(
             task.getWorkspace() != null ? task.getWorkspace().getId() : null,
             task.getWorkspace() != null ? task.getWorkspace().getName() : null,
             task.getAssignedTo() != null ? UserResponse.from(task.getAssignedTo()) : null,
+            task.getDueDate(),
+            task.getImageData(),
             task.getCreatedAt()
         );
     }

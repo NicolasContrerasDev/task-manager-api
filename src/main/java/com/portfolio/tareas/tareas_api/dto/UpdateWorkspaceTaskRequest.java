@@ -2,6 +2,7 @@ package com.portfolio.tareas.tareas_api.dto;
 
 import com.portfolio.tareas.tareas_api.models.TaskStatus;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record UpdateWorkspaceTaskRequest(
@@ -12,6 +13,14 @@ public record UpdateWorkspaceTaskRequest(
 
 	TaskStatus status,
 
-	UUID assignedUserId
+	UUID assignedUserId,
+
+	LocalDateTime dueDate,
+
+	Boolean clearDueDate,
+
+	String imageData,
+
+	Boolean clearImage
 ) {
 }

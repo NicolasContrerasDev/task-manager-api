@@ -1,6 +1,6 @@
-<<<<<<< HEAD
 HELP.md
 .gradle
+.gradle-user-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -36,7 +36,7 @@ out/
 
 ### VS Code ###
 .vscode/
-=======
+
 # Compiled class file
 *.class
 
@@ -61,4 +61,3 @@ out/
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
->>>>>>> 6cacb6acab1f4917a8eaa188b76cb36b3a31b9e3

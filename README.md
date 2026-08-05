@@ -32,11 +32,28 @@ Public endpoints:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 
-Both endpoints return a Bearer token. Send it in protected requests:
+Both endpoints return only a confirmation message in the JSON body. The Bearer token is returned in the `Authorization` response header, so use `-i` with cURL to see it:
+
+```bash
+curl -i -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+```
+
+Example response:
+
+```http
+Authorization: Bearer <token>
+
+{"message":"Inicio de sesion exitoso"}
+```
+
+Send the token in protected requests:
 
 ```http
 Authorization: Bearer <token>
 ```
+
+For the included web interface, serve the `Interfaz` folder at `http://localhost:5500` (for example, with a local static server). This is the default allowed browser origin. For another deployed client, configure `APP_CORS_ALLOWED_ORIGINS` with a comma-separated allowlist; do not use `*` when returning an authorization header.
 
 Passwords must have more than 8 characters and are stored with BCrypt.
 

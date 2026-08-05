@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.portfolio.tareas.tareas_api.config.JwtAuthenticationFilter;
-import com.portfolio.tareas.tareas_api.dto.WorkspaceMemberResponse;
+import com.portfolio.tareas.tareas_api.dto.WorkspaceJoinRequestResponse;
 import com.portfolio.tareas.tareas_api.services.WorkspaceService;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -36,19 +36,20 @@ class WorkspaceControllerTest {
 	@Test
 	void joinWorkspaceAcceptsUuidPathVariable() throws Exception {
 		UUID workspaceId = UUID.randomUUID();
-		WorkspaceMemberResponse response = new WorkspaceMemberResponse(
+		WorkspaceJoinRequestResponse response = new WorkspaceJoinRequestResponse(
 			UUID.randomUUID(),
+			workspaceId,
 			UUID.randomUUID(),
 			"nico",
 			"nico@example.com",
-			"USER",
+			"PENDING",
 			LocalDateTime.parse("2026-01-01T00:00:00")
 		);
 		when(workspaceService.joinWorkspace(workspaceId)).thenReturn(response);
 
 		mockMvc.perform(post("/api/workspaces/{workspaceId}/join", workspaceId))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.userId").value(response.userId().toString()));
+			.andExpect(jsonPath("$.status").value("PENDING"));
 
 		verify(workspaceService).joinWorkspace(workspaceId);
 	}

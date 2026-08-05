@@ -16,7 +16,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks")
-@CrossOrigin(origins = "*")
 @Tag(name = "Tareas", description = "Endpoints para administrar y consultar tareas")
 public class TaskController {
 

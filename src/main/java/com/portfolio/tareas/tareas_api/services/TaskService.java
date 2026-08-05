@@ -7,6 +7,7 @@ import com.portfolio.tareas.tareas_api.models.AppUser;
 import com.portfolio.tareas.tareas_api.models.Task;
 import com.portfolio.tareas.tareas_api.models.TaskStatus;
 import com.portfolio.tareas.tareas_api.models.WorkspaceMember;
+import com.portfolio.tareas.tareas_api.models.WorkspaceRole;
 import com.portfolio.tareas.tareas_api.repositories.TaskRepository;
 import com.portfolio.tareas.tareas_api.repositories.UserRepository;
 import java.util.List;
@@ -75,7 +76,7 @@ public class TaskService {
     @Transactional
     public TaskResponse createWorkspaceTask(UUID workspaceId, CreateWorkspaceTaskRequest request) {
         WorkspaceMember membership = workspaceService.requireTaskManager(workspaceId);
-        AppUser assignedUser = findAssignedUser(workspaceId, request.assignedUserId());
+        AppUser assignedUser = findAssignedUser(membership, request.assignedUserId());
 
         Task task = new Task();
         task.setTitle(request.title().trim());
@@ -83,13 +84,15 @@ public class TaskService {
         task.setStatus(request.status() != null ? request.status() : TaskStatus.PENDING);
         task.setWorkspace(membership.getWorkspace());
         task.setAssignedTo(assignedUser);
+        task.setDueDate(request.dueDate());
+        task.setImageData(request.imageData());
 
         return TaskResponse.from(taskRepository.save(task));
     }
 
     @Transactional
     public TaskResponse updateWorkspaceTask(UUID workspaceId, UUID taskId, UpdateWorkspaceTaskRequest request) {
-        workspaceService.requireTaskManager(workspaceId);
+        WorkspaceMember membership = workspaceService.requireTaskManager(workspaceId);
         Task task = findWorkspaceTaskOrThrow(workspaceId, taskId);
 
         if (request.title() != null && !request.title().isBlank()) {
@@ -105,7 +108,23 @@ public class TaskService {
         }
 
         if (request.assignedUserId() != null) {
-            task.setAssignedTo(findAssignedUser(workspaceId, request.assignedUserId()));
+            AppUser currentAssignee = task.getAssignedTo();
+            boolean isChangingAssignee = currentAssignee == null || !currentAssignee.getId().equals(request.assignedUserId());
+            if (isChangingAssignee) {
+                task.setAssignedTo(findAssignedUser(membership, request.assignedUserId()));
+            }
+        }
+
+        if (Boolean.TRUE.equals(request.clearDueDate())) {
+            task.setDueDate(null);
+        } else if (request.dueDate() != null) {
+            task.setDueDate(request.dueDate());
+        }
+
+        if (Boolean.TRUE.equals(request.clearImage())) {
+            task.setImageData(null);
+        } else if (request.imageData() != null) {
+            task.setImageData(request.imageData());
         }
 
         return TaskResponse.from(taskRepository.save(task));
@@ -142,11 +161,20 @@ public class TaskService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada en esta area"));
     }
 
-    private AppUser findAssignedUser(UUID workspaceId, UUID assignedUserId) {
+    private AppUser findAssignedUser(WorkspaceMember actorMembership, UUID assignedUserId) {
         AppUser assignedUser = userRepository
             .findById(assignedUserId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario asignado no encontrado"));
-        workspaceService.requireUserIsMember(workspaceId, assignedUser.getId());
+
+        WorkspaceMember assignedMembership = workspaceService.requireMembership(
+            actorMembership.getWorkspace().getId(),
+            assignedUser.getId()
+        );
+
+        if (assignedMembership.getRole() == WorkspaceRole.OWNER && actorMembership.getRole() != WorkspaceRole.OWNER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño del espacio puede asignarse tareas a sí mismo");
+        }
+
         return assignedUser;
     }
 

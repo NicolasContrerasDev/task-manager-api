@@ -7,14 +7,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.portfolio.tareas.tareas_api.dto.AuthResponse;
+import com.portfolio.tareas.tareas_api.dto.AuthSession;
 import com.portfolio.tareas.tareas_api.dto.RegisterRequest;
-import com.portfolio.tareas.tareas_api.dto.UserResponse;
 import com.portfolio.tareas.tareas_api.config.JwtAuthenticationFilter;
 import com.portfolio.tareas.tareas_api.exceptions.ApiExceptionHandler;
 import com.portfolio.tareas.tareas_api.services.AuthService;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -59,15 +56,8 @@ class AuthControllerTest {
 
 	@Test
 	void registerReturnsJwtForValidRequest() throws Exception {
-		UserResponse user = new UserResponse(
-			UUID.randomUUID(),
-			"nico",
-			"nico@example.com",
-			"USER",
-			LocalDateTime.parse("2026-01-01T00:00:00")
-		);
 		when(authService.register(any(RegisterRequest.class)))
-			.thenReturn(AuthResponse.bearer("jwt-token", 86400000L, user));
+			.thenReturn(new AuthSession("jwt-token", 86400000L));
 
 		mockMvc.perform(post("/api/auth/register")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -77,10 +67,11 @@ class AuthControllerTest {
 						"email": "nico@example.com",
 						"password": "123456789"
 					}
-					"""))
+			"""))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.token").value("jwt-token"))
-			.andExpect(jsonPath("$.tokenType").value("Bearer"))
-			.andExpect(jsonPath("$.user.username").value("nico"));
+			.andExpect(jsonPath("$.message").value("Registro completado"))
+			.andExpect(jsonPath("$.token").doesNotExist())
+			.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+				.string("Authorization", "Bearer jwt-token"));
 	}
 }

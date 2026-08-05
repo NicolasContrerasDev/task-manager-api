@@ -6,6 +6,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.portfolio.tareas.tareas_api.dto.UpdateWorkspaceMemberRoleRequest;
 import com.portfolio.tareas.tareas_api.models.WorkspaceRole;
+import com.portfolio.tareas.tareas_api.repositories.UserRepository;
+import com.portfolio.tareas.tareas_api.repositories.WorkspaceJoinRequestRepository;
 import com.portfolio.tareas.tareas_api.repositories.WorkspaceMemberRepository;
 import com.portfolio.tareas.tareas_api.repositories.WorkspaceRepository;
 import java.util.UUID;
@@ -26,6 +28,12 @@ class WorkspaceServiceTest {
 	private WorkspaceMemberRepository workspaceMemberRepository;
 
 	@Mock
+	private WorkspaceJoinRequestRepository workspaceJoinRequestRepository;
+
+	@Mock
+	private UserRepository userRepository;
+
+	@Mock
 	private CurrentUserService currentUserService;
 
 	@Test
@@ -33,6 +41,8 @@ class WorkspaceServiceTest {
 		WorkspaceService workspaceService = new WorkspaceService(
 			workspaceRepository,
 			workspaceMemberRepository,
+			workspaceJoinRequestRepository,
+			userRepository,
 			currentUserService
 		);
 
@@ -45,6 +55,6 @@ class WorkspaceServiceTest {
 				assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
 			);
 
-		verifyNoInteractions(workspaceRepository, workspaceMemberRepository, currentUserService);
+		verifyNoInteractions(workspaceRepository, workspaceMemberRepository, workspaceJoinRequestRepository, userRepository, currentUserService);
 	}
 }

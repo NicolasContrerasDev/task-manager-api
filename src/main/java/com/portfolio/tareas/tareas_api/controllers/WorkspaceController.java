@@ -1,7 +1,9 @@
 package com.portfolio.tareas.tareas_api.controllers;
 
 import com.portfolio.tareas.tareas_api.dto.CreateWorkspaceRequest;
+import com.portfolio.tareas.tareas_api.dto.AddWorkspaceMemberRequest;
 import com.portfolio.tareas.tareas_api.dto.UpdateWorkspaceMemberRoleRequest;
+import com.portfolio.tareas.tareas_api.dto.WorkspaceJoinRequestResponse;
 import com.portfolio.tareas.tareas_api.dto.WorkspaceMemberResponse;
 import com.portfolio.tareas.tareas_api.dto.WorkspaceResponse;
 import com.portfolio.tareas.tareas_api.services.WorkspaceService;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/workspaces")
-@CrossOrigin(origins = "*")
 @Tag(name = "Areas de trabajo", description = "Endpoints para crear areas, unirse y administrar miembros")
 public class WorkspaceController {
 
@@ -52,9 +53,43 @@ public class WorkspaceController {
 	}
 
 	@PostMapping("/{workspaceId}/join")
-	@Operation(summary = "Unirse a un area", description = "Une al usuario autenticado al area como USER usando el ID del area.")
-	public ResponseEntity<WorkspaceMemberResponse> joinWorkspace(@PathVariable(name = "workspaceId") UUID workspaceId) {
+	@Operation(summary = "Solicitar union a un area", description = "Crea una solicitud pendiente usando el ID del area. El OWNER o un ADMIN debe aceptarla.")
+	public ResponseEntity<WorkspaceJoinRequestResponse> joinWorkspace(@PathVariable(name = "workspaceId") UUID workspaceId) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(workspaceService.joinWorkspace(workspaceId));
+	}
+
+	@GetMapping("/{workspaceId}/join-requests")
+	@Operation(summary = "Listar solicitudes pendientes", description = "OWNER y ADMIN pueden ver quien quiere unirse al area.")
+	public List<WorkspaceJoinRequestResponse> getJoinRequests(@PathVariable(name = "workspaceId") UUID workspaceId) {
+		return workspaceService.getJoinRequests(workspaceId);
+	}
+
+	@PostMapping("/{workspaceId}/join-requests/{requestId}/accept")
+	@Operation(summary = "Aceptar solicitud", description = "OWNER y ADMIN pueden aceptar una solicitud de union y convertirla en membresia.")
+	public ResponseEntity<WorkspaceMemberResponse> acceptJoinRequest(
+		@PathVariable(name = "workspaceId") UUID workspaceId,
+		@PathVariable(name = "requestId") UUID requestId
+	) {
+		return ResponseEntity.ok(workspaceService.acceptJoinRequest(workspaceId, requestId));
+	}
+
+	@PostMapping("/{workspaceId}/join-requests/{requestId}/reject")
+	@Operation(summary = "Rechazar solicitud", description = "OWNER y ADMIN pueden rechazar una solicitud de union.")
+	public ResponseEntity<Void> rejectJoinRequest(
+		@PathVariable(name = "workspaceId") UUID workspaceId,
+		@PathVariable(name = "requestId") UUID requestId
+	) {
+		workspaceService.rejectJoinRequest(workspaceId, requestId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{workspaceId}/members")
+	@Operation(summary = "Agregar integrante", description = "OWNER y ADMIN pueden agregar una cuenta existente por usuario o correo.")
+	public ResponseEntity<WorkspaceMemberResponse> addMember(
+		@PathVariable(name = "workspaceId") UUID workspaceId,
+		@Valid @RequestBody AddWorkspaceMemberRequest request
+	) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(workspaceService.addMember(workspaceId, request));
 	}
 
 	@GetMapping("/{workspaceId}/members")
@@ -71,5 +106,15 @@ public class WorkspaceController {
 		@Valid @RequestBody UpdateWorkspaceMemberRoleRequest request
 	) {
 		return ResponseEntity.ok(workspaceService.updateMemberRole(workspaceId, userId, request));
+	}
+
+	@DeleteMapping("/{workspaceId}/members/{userId}")
+	@Operation(summary = "Eliminar integrante", description = "OWNER y ADMIN pueden eliminar a un integrante del area. No aplica sobre el duenio.")
+	public ResponseEntity<Void> removeMember(
+		@PathVariable(name = "workspaceId") UUID workspaceId,
+		@PathVariable(name = "userId") UUID userId
+	) {
+		workspaceService.removeMember(workspaceId, userId);
+		return ResponseEntity.noContent().build();
 	}
 }
